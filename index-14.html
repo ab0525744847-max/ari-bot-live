@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10131a">
+<title>מסך הבית שלי</title>
+<style>
+:root{
+  --bg1:#10131a; --bg2:#1d2b3a; --card:rgba(255,255,255,.12);
+  --text:#fff; --muted:rgba(255,255,255,.72); --shadow:0 10px 30px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:linear-gradient(160deg,var(--bg1),var(--bg2));color:var(--text)}
+body{min-height:100vh;overflow-x:hidden}
+.wallpaper{position:fixed;inset:0;background:
+radial-gradient(circle at 20% 20%,rgba(80,140,255,.28),transparent 34%),
+radial-gradient(circle at 82% 70%,rgba(170,70,255,.2),transparent 36%);
+pointer-events:none}
+.wrap{position:relative;max-width:760px;margin:0 auto;padding:18px 14px 105px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:10px 4px 18px}
+.time{font-size:44px;font-weight:700;line-height:1}
+.date{margin-top:7px;color:var(--muted);font-size:15px}
+.weather{background:var(--card);backdrop-filter:blur(18px);padding:10px 13px;border-radius:18px;box-shadow:var(--shadow);font-size:14px}
+.search{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.94);border-radius:24px;padding:12px 15px;color:#222;margin-bottom:22px;box-shadow:var(--shadow)}
+.search input{border:0;outline:0;background:transparent;width:100%;font-size:16px;text-align:right}
+.apps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px 10px}
+.app{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0;cursor:pointer;user-select:none}
+.icon{width:62px;height:62px;border-radius:18px;display:grid;place-items:center;font-size:30px;background:var(--card);backdrop-filter:blur(16px);box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.08)}
+.name{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:86px;text-shadow:0 1px 4px #000}
+.dock{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(94%,650px);background:rgba(255,255,255,.14);backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.12);border-radius:28px;padding:10px 14px;display:flex;justify-content:space-around;box-shadow:var(--shadow)}
+.dockbtn{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;font-size:28px;background:rgba(255,255,255,.12);border:0;color:#fff;cursor:pointer}
+.fab{position:fixed;right:18px;bottom:92px;width:54px;height:54px;border-radius:50%;border:0;background:#fff;color:#111;font-size:28px;box-shadow:var(--shadow);cursor:pointer}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.48);display:none;align-items:flex-end;z-index:30}
+.sheet.open{display:flex}
+.panel{width:100%;max-width:760px;margin:0 auto;background:#171b23;border-radius:26px 26px 0 0;padding:20px 16px 28px;box-shadow:0 -20px 60px rgba(0,0,0,.35)}
+.panel h3{margin:0 0 14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.panel input{width:100%;background:#252b36;border:1px solid #343c4b;color:#fff;border-radius:14px;padding:13px;font-size:15px;outline:0}
+.actions{display:flex;gap:10px;margin-top:14px}
+.actions button{flex:1;border:0;border-radius:14px;padding:13px;font-size:15px;font-weight:700}
+.save{background:#fff;color:#111}.cancel{background:#2a303a;color:#fff}
+.hint{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.5}
+.menu{position:fixed;inset:0;display:none;background:rgba(0,0,0,.45);z-index:40;align-items:center;justify-content:center;padding:20px}
+.menu.open{display:flex}
+.menuBox{width:min(340px,100%);background:#171b23;border-radius:22px;padding:16px}
+.menuBox button{width:100%;margin:6px 0;padding:13px;border:0;border-radius:13px;background:#272e39;color:#fff;font-size:15px}
+.menuBox .danger{background:#4c1f24}
+@media(max-width:380px){.apps{gap:18px 4px}.icon{width:58px;height:58px}}
+</style>
+</head>
+<body>
+<div class="wallpaper"></div>
+<main class="wrap">
+  <section class="top">
+    <div>
+      <div class="time" id="time">00:00</div>
+      <div class="date" id="date"></div>
+    </div>
+    <div class="weather">🏠 מסך הבית שלי</div>
+  </section>
+
+  <form class="search" onsubmit="doSearch(event)">
+    <span>🔎</span>
+    <input id="q" placeholder="חיפוש בגוגל..." autocomplete="off">
+  </form>
+
+  <section class="apps" id="apps"></section>
+</main>
+
+<button class="fab" title="הוסף קיצור" onclick="openAdd()">＋</button>
+
+<nav class="dock">
+  <button class="dockbtn" onclick="openUrl('https://www.google.com')" title="Google">🌐</button>
+  <button class="dockbtn" onclick="openUrl('https://www.youtube.com')" title="YouTube">▶️</button>
+  <button class="dockbtn" onclick="openUrl('https://mail.google.com')" title="Gmail">✉️</button>
+  <button class="dockbtn" onclick="openUrl('https://maps.google.com')" title="Maps">🗺️</button>
+</nav>
+
+<div class="sheet" id="sheet" onclick="bgClose(event)">
+  <div class="panel">
+    <h3 id="panelTitle">הוספת קיצור</h3>
+    <div class="row">
+      <input id="appName" placeholder="שם, לדוגמה WhatsApp">
+      <input id="appIcon" placeholder="אימוג'י, לדוגמה 💬">
+    </div>
+    <input id="appUrl" style="margin-top:10px" placeholder="קישור, לדוגמה https://web.whatsapp.com">
+    <div class="actions">
+      <button class="save" onclick="saveApp()">שמור</button>
+      <button class="cancel" onclick="closeAdd()">ביטול</button>
+    </div>
+    <div class="hint">טיפ: אפשר להכניס גם קישורים מיוחדים של אפליקציות אם הם נתמכים בטלפון. לחיצה ארוכה על אייקון מאפשרת עריכה או מחיקה.</div>
+  </div>
+</div>
+
+<div class="menu" id="menu" onclick="menuBg(event)">
+  <div class="menuBox">
+    <button onclick="editSelected()">✏️ עריכה</button>
+    <button class="danger" onclick="deleteSelected()">🗑️ מחיקה</button>
+    <button onclick="closeMenu()">סגור</button>
+  </div>
+</div>
+
+<script>
+const defaults = [
+ {name:'WhatsApp',icon:'💬',url:'https://web.whatsapp.com'},
+ {name:'YouTube',icon:'▶️',url:'https://www.youtube.com'},
+ {name:'Google',icon:'🔎',url:'https://www.google.com'},
+ {name:'Gmail',icon:'✉️',url:'https://mail.google.com'},
+ {name:'מפות',icon:'🗺️',url:'https://maps.google.com'},
+ {name:'תמונות',icon:'🖼️',url:'https://photos.google.com'},
+ {name:'Drive',icon:'📁',url:'https://drive.google.com'},
+ {name:'ChatGPT',icon:'🤖',url:'https://chatgpt.com'}
+];
+let apps = JSON.parse(localStorage.getItem('homeApps')||'null') || defaults;
+let editing = -1, selected = -1, pressTimer;
+
+function render(){
+ const el=document.getElementById('apps'); el.innerHTML='';
+ apps.forEach((a,i)=>{
+   const d=document.createElement('div'); d.className='app';
+   d.innerHTML=`<div class="icon">${escapeHtml(a.icon||'📱')}</div><div class="name">${escapeHtml(a.name)}</div>`;
+   d.addEventListener('click',()=>openUrl(a.url));
+   d.addEventListener('pointerdown',()=>{pressTimer=setTimeout(()=>{selected=i;openMenu()},650)});
+   ['pointerup','pointercancel','pointerleave'].forEach(ev=>d.addEventListener(ev,()=>clearTimeout(pressTimer)));
+   el.appendChild(d);
+ });
+ localStorage.setItem('homeApps',JSON.stringify(apps));
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function openUrl(url){
+ if(!url)return;
+ if(!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url)) url='https://'+url;
+ window.location.href=url;
+}
+function doSearch(e){e.preventDefault(); const q=document.getElementById('q').value.trim(); if(q) location.href='https://www.google.com/search?q='+encodeURIComponent(q)}
+function tick(){
+ const now=new Date();
+ document.getElementById('time').textContent=now.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+ document.getElementById('date').textContent=now.toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long'});
+}
+function openAdd(idx=-1){
+ editing=idx;
+ document.getElementById('panelTitle').textContent=idx<0?'הוספת קיצור':'עריכת קיצור';
+ document.getElementById('appName').value=idx<0?'':apps[idx].name;
+ document.getElementById('appIcon').value=idx<0?'':apps[idx].icon;
+ document.getElementById('appUrl').value=idx<0?'':apps[idx].url;
+ document.getElementById('sheet').classList.add('open');
+}
+function closeAdd(){document.getElementById('sheet').classList.remove('open');editing=-1}
+function saveApp(){
+ const name=document.getElementById('appName').value.trim();
+ const icon=document.getElementById('appIcon').value.trim()||'📱';
+ const url=document.getElementById('appUrl').value.trim();
+ if(!name||!url){alert('צריך למלא שם וקישור');return}
+ const obj={name,icon,url};
+ if(editing<0) apps.push(obj); else apps[editing]=obj;
+ render(); closeAdd();
+}
+function bgClose(e){if(e.target.id==='sheet')closeAdd()}
+function openMenu(){document.getElementById('menu').classList.add('open')}
+function closeMenu(){document.getElementById('menu').classList.remove('open')}
+function menuBg(e){if(e.target.id==='menu')closeMenu()}
+function editSelected(){const i=selected;closeMenu();openAdd(i)}
+function deleteSelected(){if(selected>=0){apps.splice(selected,1);render()}closeMenu()}
+tick(); setInterval(tick,1000); render();
+</script>
+</body>
+</html>
